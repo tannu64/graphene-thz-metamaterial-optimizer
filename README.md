@@ -17,7 +17,7 @@ This project applies machine learning to optimize graphene-based terahertz (THz)
 ## Project Structure
 
 ```
-├── app.py                 # Streamlit web dashboard (5 pages)
+├── streamlit_app.py                 # Streamlit web dashboard (5 pages)
 ├── config.py              # Centralized path configuration
 ├── data_loader.py         # COMSOL file parser and data pipeline
 ├── ml_model.py            # ML model training and evaluation
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 ### Run the Streamlit Dashboard
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 The dashboard has 5 pages:

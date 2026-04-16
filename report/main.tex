@@ -380,7 +380,7 @@ The pipeline consists of six Python modules, all sharing a centralised configura
 \begin{itemize}[leftmargin=2cm]
     \item \texttt{data\_loader.py} --- Core data pipeline: parsing, parameter extraction, resonance detection, ON/OFF pairing
     \item \texttt{ml\_model.py} --- ML training, LOO~CV evaluation, and prediction
-    \item \texttt{app.py} --- Streamlit web dashboard with Plotly interactive charts
+    \item \texttt{streamlit\_app.py} --- Streamlit web dashboard with Plotly interactive charts
     \item \texttt{visualize.py} --- Static matplotlib plot generation
     \item \texttt{analyze.py} --- Sensitivity analysis and text report generation
 \end{itemize}
@@ -495,7 +495,7 @@ For each of the 19 samples, the model is trained on the remaining 18 and predict
 \section{Interactive Dashboard}
 \label{sec:dashboard}
 
-The interactive dashboard, implemented in \texttt{app.py} using the Streamlit framework with Plotly for interactive charting, provides five pages for data exploration and ML-based prediction.
+The interactive dashboard, implemented in \texttt{streamlit\_app.py} using the Streamlit framework with Plotly for interactive charting, provides five pages for data exploration and ML-based prediction.
 
 \subsection{Dashboard Pages}
 
@@ -1013,7 +1013,7 @@ In accordance with Queen Mary University of London's academic integrity policy, 
 Generative AI was used in the following specific capacities during this project:
 
 \begin{enumerate}[leftmargin=2cm]
-    \item \textbf{Code development assistance:} AI was used to assist with the development of the Python data pipeline (\texttt{data\_loader.py}), machine learning training framework (\texttt{ml\_model.py}), Streamlit dashboard (\texttt{app.py}), and visualisation scripts (\texttt{visualize.py}, \texttt{analyze.py}). This included assistance with code structure, debugging, and implementation of specific functions.
+    \item \textbf{Code development assistance:} AI was used to assist with the development of the Python data pipeline (\texttt{data\_loader.py}), machine learning training framework (\texttt{ml\_model.py}), Streamlit dashboard (\texttt{streamlit\_app.py}), and visualisation scripts (\texttt{visualize.py}, \texttt{analyze.py}). This included assistance with code structure, debugging, and implementation of specific functions.
 
     \item \textbf{Report writing assistance:} AI was used to assist with drafting sections of this \LaTeX{} report, including structuring the document, formulating academic prose, and formatting tables, figures, and equations.
 

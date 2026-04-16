@@ -1,6 +1,6 @@
 """
-app.py - Streamlit web interface for THz Metamaterial Optimizer.
-Run with: streamlit run app.py
+streamlit_app.py - Streamlit web interface for THz Metamaterial Optimizer.
+Run with: streamlit run streamlit_app.py
 """
 
 import streamlit as st
