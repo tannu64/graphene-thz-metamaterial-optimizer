@@ -1,0 +1,126 @@
+========================================================================
+BEST-PERFORMANCE ANALYSIS REPORT
+========================================================================
+
+Dataset: 27 simulations, 13 ON/OFF pairs
+Target dip depth: -20 dB
+
+------------------------------------------------------------------------
+1. BEST CONFIGURATIONS (EACH METRIC)
+------------------------------------------------------------------------
+
+  DEEPEST S12 DIP:
+    filename             = Sdx35_gw3cw28wgraph1hgraph6wau4__sigma0.3 (1).txt
+    dx                   = 35
+    g_w                  = 3
+    c_w                  = 28
+    w_graph              = 1
+    h_graph              = 6
+    w_au                 = 4
+    sigma                = 0.300
+    s12_min              = -16.642
+    s12_min_freq         = 410.000
+    s22_min              = -2.380
+    s22_min_freq         = 250.000
+
+  DEEPEST ON STATE DIP:
+    filename             = Sdx35_gw3cw28wgraph1hgraph6wau4__sigma0.3 (1).txt
+    dx                   = 35
+    g_w                  = 3
+    c_w                  = 28
+    w_graph              = 1
+    h_graph              = 6
+    w_au                 = 4
+    sigma                = 0.300
+    s12_min              = -16.642
+    s12_min_freq         = 410.000
+    s22_min              = -2.380
+    s22_min_freq         = 250.000
+
+  DEEPEST OFF STATE DIP:
+    filename             = Sdx35_gw3cw28wgraph1hgraphm2wau5_sigma1.2.txt
+    dx                   = 35
+    g_w                  = 3
+    c_w                  = 28
+    w_graph              = 1
+    h_graph              = -2
+    w_au                 = 5
+    sigma                = 1.200
+    s12_min              = -15.766
+    s12_min_freq         = 380.000
+    s22_min              = -3.001
+    s22_min_freq         = 660.000
+
+  LARGEST FREQ SHIFT:
+    dx                   = 23.000
+    g_w                  = 3.000
+    c_w                  = 28.000
+    w_graph              = 1.000
+    h_graph              = 2.000
+    w_au                 = 4.000
+    s12_min_on           = -11.076
+    s12_min_freq_on      = 540.000
+    s12_min_off          = -14.373
+    s12_min_freq_off     = 480.000
+    freq_shift_ghz       = 60.000
+    avg_dip              = -12.724
+
+  DEEPEST AVG PAIR DIP:
+    dx                   = 35.000
+    g_w                  = 3.000
+    c_w                  = 28.000
+    w_graph              = 1.000
+    h_graph              = 6.000
+    w_au                 = 4.000
+    s12_min_on           = -16.642
+    s12_min_freq_on      = 410.000
+    s12_min_off          = -14.279
+    s12_min_freq_off     = 390.000
+    freq_shift_ghz       = 20.000
+    avg_dip              = -15.460
+
+------------------------------------------------------------------------
+2. DISTANCE TO -20 dB TARGET
+------------------------------------------------------------------------
+  Deepest observed dip: -16.642 dB
+  Target:               -20.000 dB
+  Gap:                  3.358 dB
+  Percentage reached:   83.2%
+
+------------------------------------------------------------------------
+3. 1-D SENSITIVITY AROUND BEST ON-STATE DIP
+------------------------------------------------------------------------
+  Pivot row: dx=35, g_w=3, c_w=28, h_graph=6, w_au=4, sigma=0.3
+  S12 dip at pivot: -16.642 dB, freq 410.0 GHz
+
+  Varying h_graph (other params fixed):
+     h_graph | S12 dip (dB) | Dip freq (GHz)
+          -6 |      -14.950 |          410.0
+           0 |      -14.890 |          410.0
+           2 |      -12.477 |          400.0
+           6 |      -16.642 |          410.0
+
+------------------------------------------------------------------------
+4. 5 NEAREST NEIGHBOURS OF THE BEST ON-STATE DIP
+    (Euclidean distance in standardised parameter space)
+------------------------------------------------------------------------
+
+      dx  g_w  c_w  h_graph  w_au  sigma    s12_min  s12_min_freq  z_distance
+  11  35    3   28        6     4    0.3 -16.641759         410.0    0.000000
+  16  35    3   28        6     4    1.2 -14.279198         390.0    0.000000
+  20  35    3   28        2     4    1.2 -13.407818         360.0    1.461843
+  14  35    3   28        2     4    0.3 -12.476820         400.0    1.461843
+  8   33    3   28        2     4    0.3 -12.311782         420.0    1.536595
+
+------------------------------------------------------------------------
+5. TOP-5 RANKED BY DEEPEST S12 DIP (ANY SIGMA)
+------------------------------------------------------------------------
+
+      dx  g_w  c_w  h_graph  w_au  sigma    s12_min  s12_min_freq
+  11  35    3   28        6     4    0.3 -16.641759         410.0
+  18  35    3   28       -2     5    1.2 -15.765815         380.0
+  9   33    3   28        2     4    1.2 -15.604531         380.0
+  7   31    3   28        2     4    1.2 -15.156024         400.0
+  5   27    3   28        2     4    1.2 -15.032440         440.0
+
+========================================================================

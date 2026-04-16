@@ -81,6 +81,7 @@ page = st.sidebar.radio("Go to", [
     "S-Parameter Curves",
     "ML Model Results",
     "Predict New Design",
+    "Phase 3: Optimisation",
 ])
 
 st.sidebar.markdown("---")
@@ -507,6 +508,142 @@ def render_predict():
 
 
 # ============================================================
+# Page 6: Phase 3 Optimisation (Bayesian + NSGA-II)
+# ============================================================
+@st.cache_data
+def load_phase3_bo():
+    import os
+    path = os.path.join('output', 'phase3_bo_top10.csv')
+    if os.path.exists(path):
+        return pd.read_csv(path)
+    return None
+
+
+@st.cache_data
+def load_phase3_pareto():
+    import os
+    path = os.path.join('output', 'phase3_pareto_front.csv')
+    if os.path.exists(path):
+        return pd.read_csv(path)
+    return None
+
+
+def render_phase3():
+    st.title("Phase 3: Multi-Objective Optimisation")
+    st.markdown(
+        "Use the trained ML surrogates to search the parameter space for "
+        "designs that maximise device performance, without running any new "
+        "COMSOL simulations."
+    )
+    st.markdown("---")
+
+    tab1, tab2, tab3 = st.tabs([
+        "Bayesian Optimisation (Single Objective)",
+        "NSGA-II (Multi Objective Pareto)",
+        "Validation Package",
+    ])
+
+    with tab1:
+        st.subheader("Bayesian Optimisation — Maximise S12 Dip Depth")
+        st.markdown(
+            "Uses **scikit-optimize**'s `gp_minimize` with Expected Improvement "
+            "acquisition function. The GP surrogate is consulted ~60 times to "
+            "find the parameter set with the deepest predicted dip."
+        )
+
+        bo_df = load_phase3_bo()
+        if bo_df is None:
+            st.warning(
+                "Run `python phase3_bayesopt.py` first to generate results.")
+        else:
+            col_pred = [c for c in bo_df.columns if c.startswith('predicted')][0]
+            st.markdown(f"**Best predicted dip:** {bo_df[col_pred].min():.3f} dB")
+            st.markdown(
+                "**Top 10 candidates** (ranked by predicted S12 dip depth):")
+            st.dataframe(bo_df, use_container_width=True)
+
+            import os
+            conv_path = os.path.join('output', 'plots', 'phase3_bo_convergence.png')
+            if os.path.exists(conv_path):
+                st.image(conv_path, caption="BO convergence trace")
+
+    with tab2:
+        st.subheader("NSGA-II — Pareto Trade-off: Dip Depth vs Frequency Shift")
+        st.markdown(
+            "Uses **pymoo**'s NSGA-II with population=40, generations=50. "
+            "Objectives: (1) maximise dip depth, (2) maximise |ON/OFF frequency "
+            "shift|. The Pareto front shows the best-achievable trade-offs."
+        )
+
+        pareto_df = load_phase3_pareto()
+        if pareto_df is None:
+            st.warning(
+                "Run `python phase3_nsga2.py` first to generate results.")
+        else:
+            st.markdown(
+                f"**Pareto front size:** {len(pareto_df)} non-dominated solutions")
+
+            # Interactive Plotly scatter
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=pareto_df['predicted_dip_dB'],
+                y=pareto_df['predicted_freq_shift_abs_GHz'],
+                mode='markers',
+                marker=dict(
+                    size=10,
+                    color=pareto_df['h_graph'],
+                    colorscale='Viridis',
+                    colorbar=dict(title='h_graph (μm)'),
+                    line=dict(color='black', width=0.5),
+                ),
+                text=[f"dx={r.dx}, g_w={r.g_w}, c_w={r.c_w}, "
+                      f"h_graph={r.h_graph}, w_au={r.w_au}"
+                      for r in pareto_df.itertuples()],
+                hovertemplate="%{text}<br>Dip: %{x:.2f} dB<br>"
+                              "Shift: %{y:.1f} GHz<extra></extra>",
+            ))
+            fig.update_layout(
+                xaxis_title="Predicted S12 Dip (dB, more negative = deeper)",
+                yaxis_title="Predicted |Frequency Shift| (GHz, larger = better)",
+                title="Pareto Front — hover for parameter details",
+                height=500,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown("**Pareto-optimal parameter sets:**")
+            st.dataframe(pareto_df, use_container_width=True)
+
+            # Download CSV button
+            csv = pareto_df.to_csv(index=False).encode()
+            st.download_button(
+                "Download Pareto front as CSV",
+                csv, "phase3_pareto_front.csv", "text/csv"
+            )
+
+    with tab3:
+        st.subheader("Top 5 Candidates for COMSOL Validation")
+        st.markdown(
+            "These 5 candidates are selected from the Pareto front to be "
+            "validated by running new COMSOL simulations. Comparing predicted "
+            "vs. actual performance will quantify the surrogate's real-world "
+            "accuracy."
+        )
+        pareto_df = load_phase3_pareto()
+        if pareto_df is not None:
+            top5 = pareto_df.head(5).copy()
+            top5.insert(0, 'candidate', range(1, len(top5) + 1))
+            st.dataframe(top5, use_container_width=True)
+            st.markdown(
+                "**Acceptance criteria for surrogate validation:**\n"
+                "- MAE (dip) ≤ 1.5 dB\n"
+                "- MAE (frequency) ≤ 20 GHz\n"
+                "- R² ≥ 0.6 on the 5 held-out points"
+            )
+        else:
+            st.info("Run NSGA-II first to populate this tab.")
+
+
+# ============================================================
 # Routing
 # ============================================================
 if page == "Project Overview":
@@ -519,3 +656,5 @@ elif page == "ML Model Results":
     render_ml_results()
 elif page == "Predict New Design":
     render_predict()
+elif page == "Phase 3: Optimisation":
+    render_phase3()

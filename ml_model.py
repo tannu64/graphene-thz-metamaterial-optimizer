@@ -17,9 +17,15 @@ from config import DATA_DIR, OUTPUT_DIR
 from data_loader import load_all_data, pair_on_off
 
 
-def prepare_dataset(df):
+def prepare_dataset(df, drop_zero_variance=True):
     """
     Build ML-ready X (features) and Y (targets) from simulation data.
+
+    If drop_zero_variance=True (default), features with no variance in the
+    dataset are removed. This avoids the misleading "zero importance"
+    artefact and keeps the feature set honest about what the model actually
+    has information on.
+
     Returns X, Y DataFrames and feature/target names.
     """
     feature_cols = ['dx', 'g_w', 'c_w', 'h_graph', 'w_graph', 'w_au']
@@ -29,10 +35,19 @@ def prepare_dataset(df):
     Y = df[target_cols].copy()
     Y.columns = ['S12 Dip (dB)', 'Dip Freq (GHz)']
 
+    if drop_zero_variance:
+        nunique = X.nunique()
+        kept = [c for c in feature_cols if nunique[c] > 1]
+        dropped = [c for c in feature_cols if nunique[c] <= 1]
+        if dropped:
+            print(f"  Dropping zero-variance features: {dropped}")
+        X = X[kept]
+        feature_cols = kept
+
     return X, Y, feature_cols, list(Y.columns)
 
 
-def prepare_pair_dataset(pairs):
+def prepare_pair_dataset(pairs, drop_zero_variance=True):
     """
     Build ML-ready dataset from ON/OFF pairs for frequency shift prediction.
     Returns X, Y DataFrames.
@@ -43,6 +58,12 @@ def prepare_pair_dataset(pairs):
     X = pairs[feature_cols].copy()
     Y = pairs[target_cols].copy()
     Y.columns = ['Freq Shift (GHz)', 'Avg Dip (dB)']
+
+    if drop_zero_variance:
+        nunique = X.nunique()
+        kept = [c for c in feature_cols if nunique[c] > 1]
+        X = X[kept]
+        feature_cols = kept
 
     return X, Y, feature_cols, list(Y.columns)
 
@@ -156,7 +177,8 @@ def print_results(results, dataset_label=""):
             print(f"      MAE  = {metrics['MAE']:.4f}")
 
 
-def save_ml_report(results_all, results_pairs, imp_all, imp_pairs, output_dir):
+def save_ml_report(results_all, results_pairs, imp_all, imp_pairs, output_dir,
+                   n_all=None, n_pairs=None):
     """Save ML evaluation results to a text report."""
     lines = []
 
@@ -167,7 +189,7 @@ def save_ml_report(results_all, results_pairs, imp_all, imp_pairs, output_dir):
     add("MACHINE LEARNING MODEL EVALUATION REPORT")
     add("=" * 70)
 
-    add("\n1. ALL SIMULATIONS (19 samples, LOO cross-validation)")
+    add(f"\n1. ALL SIMULATIONS ({n_all} samples, LOO cross-validation)")
     add("-" * 70)
     for model_name, targets in results_all.items():
         add(f"\n  {model_name}:")
@@ -175,7 +197,7 @@ def save_ml_report(results_all, results_pairs, imp_all, imp_pairs, output_dir):
             add(f"    {target_name}: R²={m['R2']:.4f}, RMSE={m['RMSE']:.4f}, MAE={m['MAE']:.4f}")
 
     if results_pairs:
-        add(f"\n\n2. ON/OFF PAIRS (7 pairs, LOO cross-validation)")
+        add(f"\n\n2. ON/OFF PAIRS ({n_pairs} pairs, LOO cross-validation)")
         add("-" * 70)
         for model_name, targets in results_pairs.items():
             add(f"\n  {model_name}:")
@@ -221,7 +243,7 @@ if __name__ == '__main__':
 
     print("\nEvaluating models on all simulations (LOO CV)...")
     results_all, _ = evaluate_models(X_all, Y_all, models)
-    print_results(results_all, "All Simulations (19 samples)")
+    print_results(results_all, f"All Simulations ({len(df)} samples)")
 
     imp_all = feature_importance(X_all, Y_all, feat_cols)
     print(f"\nFeature Importance (all simulations):")
@@ -236,7 +258,7 @@ if __name__ == '__main__':
 
         print("\nEvaluating models on ON/OFF pairs (LOO CV)...")
         results_pairs, _ = evaluate_models(X_pairs, Y_pairs, models_p)
-        print_results(results_pairs, "ON/OFF Pairs (7 samples)")
+        print_results(results_pairs, f"ON/OFF Pairs ({len(pairs)} samples)")
 
         imp_pairs = feature_importance(X_pairs, Y_pairs, feat_cols_p)
         print(f"\nFeature Importance (ON/OFF pairs):")
@@ -248,4 +270,5 @@ if __name__ == '__main__':
     print("Done. Models ready for prediction.")
 
     # --- Save report ---
-    save_ml_report(results_all, results_pairs, imp_all, imp_pairs, OUTPUT_DIR)
+    save_ml_report(results_all, results_pairs, imp_all, imp_pairs, OUTPUT_DIR,
+                   n_all=len(df), n_pairs=len(pairs))

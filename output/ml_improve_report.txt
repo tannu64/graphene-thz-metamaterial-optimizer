@@ -1,0 +1,89 @@
+========================================================================
+ML IMPROVEMENT & INTERNAL VALIDATION REPORT
+========================================================================
+
+Dataset: 27 simulations, 13 ON/OFF pairs
+
+Active features (after zero-variance removal): ['dx', 'g_w', 'c_w', 'h_graph', 'w_au']
+
+------------------------------------------------------------------------
+TARGET: S12 Dip (dB)
+------------------------------------------------------------------------
+
+[1] Tuned Random Forest (GridSearchCV over RF_GRID):
+    Best params: {'max_depth': 3, 'min_samples_leaf': 3, 'n_estimators': 100}
+    R²=0.0768, RMSE=1.6175, MAE=1.3293
+
+[2] Tuned Gradient Boosting (GridSearchCV over GB_GRID):
+    Best params: {'learning_rate': 0.05, 'max_depth': 2, 'min_samples_leaf': 2, 'n_estimators': 50}
+    R²=0.0399, RMSE=1.6495, MAE=1.3884
+
+[3] GP kernel comparison:
+    RBF         : R²=0.0779, RMSE=1.6165, MAE=1.3413
+    Matern3/2   : R²=0.0164, RMSE=1.6696, MAE=1.3765
+    Matern5/2   : R²=0.0458, RMSE=1.6445, MAE=1.3594
+
+[4] Internal validation on best RF (repeated 5-fold × 10):
+    R² (mean ± std):  -1.058 ± 2.747
+    R² (5th–95th):    [-7.783, 0.414]
+
+[5] Bootstrap 95% CI on LOO R² (best RF, 200 resamples):
+    R² mean:     0.007 ± 0.145
+    95% CI:      [-0.348, 0.253]
+
+------------------------------------------------------------------------
+TARGET: Dip Freq (GHz)
+------------------------------------------------------------------------
+
+[1] Tuned Random Forest (GridSearchCV over RF_GRID):
+    Best params: {'max_depth': 5, 'min_samples_leaf': 1, 'n_estimators': 100}
+    R²=0.6080, RMSE=38.1711, MAE=32.0859
+
+[2] Tuned Gradient Boosting (GridSearchCV over GB_GRID):
+    Best params: {'learning_rate': 0.05, 'max_depth': 3, 'min_samples_leaf': 3, 'n_estimators': 50}
+    R²=0.5410, RMSE=41.3039, MAE=32.8385
+
+[3] GP kernel comparison:
+    RBF         : R²=0.6813, RMSE=34.4190, MAE=29.5335
+    Matern3/2   : R²=0.6466, RMSE=36.2430, MAE=30.8491
+    Matern5/2   : R²=0.6639, RMSE=35.3472, MAE=30.1651
+
+[4] Internal validation on best RF (repeated 5-fold × 10):
+    R² (mean ± std):  0.106 ± 1.345
+    R² (5th–95th):    [-0.840, 0.810]
+
+[5] Bootstrap 95% CI on LOO R² (best RF, 200 resamples):
+    R² mean:     0.565 ± 0.124
+    95% CI:      [0.257, 0.742]
+
+------------------------------------------------------------------------
+ON/OFF PAIR TARGET: Freq Shift (GHz)
+------------------------------------------------------------------------
+(n = 13 pairs)
+
+Default RF LOO:  R²=0.4441, RMSE=11.6980, MAE=9.5608
+Repeated 3-fold: R² = 0.085 ± 0.414
+Bootstrap 95% CI: [-0.050, 0.617]
+
+------------------------------------------------------------------------
+ON/OFF PAIR TARGET: Avg Dip (dB)
+------------------------------------------------------------------------
+(n = 13 pairs)
+
+Default RF LOO:  R²=0.3463, RMSE=1.0167, MAE=0.7547
+Repeated 3-fold: R² = -0.046 ± 0.451
+Bootstrap 95% CI: [-0.236, 0.606]
+
+========================================================================
+INTERPRETATION GUIDE
+========================================================================
+
+- LOO R² is the point estimate of out-of-sample performance.
+- Repeated K-fold R² gives a distribution: if mean is high but std is also
+  high, the model is unstable (predictions depend heavily on which samples
+  it saw). Trust models with tight std only.
+- Bootstrap 95% CI quantifies uncertainty in the R² estimate itself.
+  If CI is wide (e.g. [-0.5, 0.5]) the R² value is essentially
+  uninformative; if narrow (e.g. [0.6, 0.75]) the performance is robust.
+- Hyperparameter tuning rarely lifts R² dramatically on very small
+  datasets, but it does reduce variance and produces more stable models.

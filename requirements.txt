@@ -5,3 +5,5 @@ scikit-learn
 python-docx
 streamlit>=1.32.0
 plotly
+scikit-optimize>=0.9.0
+pymoo>=0.6.0

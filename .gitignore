@@ -5,3 +5,22 @@ __pycache__/
 .qodo/
 CLAUDE.md
 output/
+
+# Virtual env / tooling
+.claude/
+diagram_env/
+graphviz_bin/
+
+# Supervisor raw feedback (processed outputs already in report/ and data/)
+Professor Feedback 260416/
+professor feedback 260326/
+
+# LaTeX build artefacts (keep .tex, .bib, .pdf; discard intermediates)
+report/*.aux
+report/*.log
+report/*.toc
+report/*.bbl
+report/*.blg
+report/*.lof
+report/*.lot
+report/*.out

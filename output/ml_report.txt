@@ -1,0 +1,62 @@
+======================================================================
+MACHINE LEARNING MODEL EVALUATION REPORT
+======================================================================
+
+1. ALL SIMULATIONS (27 samples, LOO cross-validation)
+----------------------------------------------------------------------
+
+  Random Forest:
+    S12 Dip (dB): R²=-0.0191, RMSE=1.6994, MAE=1.4096
+    Dip Freq (GHz): R²=0.5373, RMSE=41.4738, MAE=33.5562
+
+  Gradient Boosting:
+    S12 Dip (dB): R²=-0.3278, RMSE=1.9398, MAE=1.6199
+    Dip Freq (GHz): R²=0.4946, RMSE=43.3444, MAE=38.0685
+
+  Gaussian Process:
+    S12 Dip (dB): R²=0.0779, RMSE=1.6165, MAE=1.3413
+    Dip Freq (GHz): R²=0.6813, RMSE=34.4190, MAE=29.5335
+
+
+2. ON/OFF PAIRS (13 pairs, LOO cross-validation)
+----------------------------------------------------------------------
+
+  Random Forest:
+    Freq Shift (GHz): R²=0.4441, RMSE=11.6980, MAE=9.5608
+    Avg Dip (dB): R²=0.3463, RMSE=1.0167, MAE=0.7547
+
+  Gradient Boosting:
+    Freq Shift (GHz): R²=0.4894, RMSE=11.2106, MAE=7.8556
+    Avg Dip (dB): R²=0.2943, RMSE=1.0563, MAE=0.7004
+
+  Gaussian Process:
+    Freq Shift (GHz): R²=0.1618, RMSE=14.3637, MAE=12.6667
+    Avg Dip (dB): R²=0.0768, RMSE=1.2083, MAE=0.8879
+
+
+3. FEATURE IMPORTANCE (Random Forest)
+----------------------------------------------------------------------
+
+  All simulations:
+         S12 Dip (dB)  Dip Freq (GHz)
+dx           0.257705        0.382346
+g_w          0.223241        0.076343
+c_w          0.217591        0.465528
+h_graph      0.253300        0.038794
+w_au         0.048163        0.036989
+
+  ON/OFF pairs:
+         Freq Shift (GHz)  Avg Dip (dB)
+dx               0.204698      0.157576
+g_w              0.319201      0.313541
+c_w              0.053708      0.209503
+h_graph          0.412813      0.316672
+w_au             0.009580      0.002708
+
+
+4. BEST MODEL SUMMARY
+----------------------------------------------------------------------
+  S12 Dip (dB): Gaussian Process (R²=0.0779)
+  Dip Freq (GHz): Gaussian Process (R²=0.6813)
+
+======================================================================
