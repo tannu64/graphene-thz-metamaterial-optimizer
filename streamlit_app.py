@@ -286,38 +286,94 @@ def render_curves():
             st.warning("No ON/OFF pairs found.")
             return
 
-        n = len(pairs)
-        fig = make_subplots(rows=1, cols=n,
-                            subplot_titles=[
-                                f"dx={r['dx']:.0f} gw={r['g_w']:.0f} cw={r['c_w']:.0f} hg={r['h_graph']:.0f}"
-                                for _, r in pairs.iterrows()
-                            ])
+        # User selects which pair to inspect (full-size, readable plot)
+        pair_labels = [
+            f"#{i}: dx={r['dx']:.0f}, g_w={r['g_w']:.0f}, c_w={r['c_w']:.0f}, "
+            f"h_graph={r['h_graph']:.0f}, w_au={r['w_au']:.0f} "
+            f"(Δf={r['freq_shift_ghz']:.0f} GHz)"
+            for i, (_, r) in enumerate(pairs.iterrows(), 1)
+        ]
+        view_mode = st.radio(
+            "View mode",
+            ["Single pair (detail)", "All pairs grid"],
+            horizontal=True,
+        )
 
-        for i, (_, pair) in enumerate(pairs.iterrows(), 1):
+        if view_mode == "Single pair (detail)":
+            selected = st.selectbox("Select ON/OFF pair", pair_labels)
+            pair_idx = pair_labels.index(selected)
+            pair = pairs.iloc[pair_idx]
+
+            fig = go.Figure()
             for fname, data in curves.items():
                 p = data['params']
                 if (p['dx'] == pair['dx'] and p['g_w'] == pair['g_w'] and
-                        p['c_w'] == pair['c_w'] and p['h_graph'] == pair['h_graph']):
+                        p['c_w'] == pair['c_w'] and p['h_graph'] == pair['h_graph']
+                        and p['w_au'] == pair['w_au']):
                     c = data['curve']
                     color = 'royalblue' if p['sigma'] == 0.3 else 'crimson'
-                    name = 'ON' if p['sigma'] == 0.3 else 'OFF'
+                    name = f"ON (σ=0.3 mS)" if p['sigma'] == 0.3 else f"OFF (σ=1.2 mS)"
                     fig.add_trace(go.Scatter(
                         x=c['freq_ghz'], y=c['s12'], mode='lines',
-                        line=dict(color=color, width=2),
-                        name=name, showlegend=(i == 1),
-                    ), row=1, col=i)
+                        line=dict(color=color, width=3), name=name,
+                    ))
 
-            # Annotate frequency shift
             fig.add_annotation(
                 x=(pair['s12_min_freq_on'] + pair['s12_min_freq_off']) / 2,
                 y=pair['avg_dip'],
-                text=f"Δf={pair['freq_shift_ghz']:.0f} GHz",
-                showarrow=False, font=dict(color='green', size=12, family='Arial Black'),
-                row=1, col=i,
+                text=f"Δf = {pair['freq_shift_ghz']:.0f} GHz",
+                showarrow=False,
+                font=dict(color='green', size=16, family='Arial Black'),
+            )
+            fig.update_layout(
+                height=500,
+                title=f"ON vs OFF: {selected}",
+                xaxis_title="Frequency (GHz)",
+                yaxis_title="S12 (dB)",
+                hovermode='x unified',
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        else:  # All pairs grid
+            n = len(pairs)
+            cols = 3
+            rows = (n + cols - 1) // cols
+
+            fig = make_subplots(
+                rows=rows, cols=cols,
+                subplot_titles=[
+                    f"dx={r['dx']:.0f} cw={r['c_w']:.0f} hg={r['h_graph']:.0f} "
+                    f"wau={r['w_au']:.0f} (Δf={r['freq_shift_ghz']:.0f})"
+                    for _, r in pairs.iterrows()
+                ],
+                vertical_spacing=0.12,
+                horizontal_spacing=0.08,
             )
 
-        fig.update_layout(height=450, title_text="ON vs OFF State Comparison")
-        fig.update_xaxes(title_text="Freq (GHz)")
+            for i, (_, pair) in enumerate(pairs.iterrows()):
+                row = i // cols + 1
+                col = i % cols + 1
+
+                for fname, data in curves.items():
+                    p = data['params']
+                    if (p['dx'] == pair['dx'] and p['g_w'] == pair['g_w'] and
+                            p['c_w'] == pair['c_w'] and p['h_graph'] == pair['h_graph']
+                            and p['w_au'] == pair['w_au']):
+                        c = data['curve']
+                        color = 'royalblue' if p['sigma'] == 0.3 else 'crimson'
+                        name = 'ON' if p['sigma'] == 0.3 else 'OFF'
+                        fig.add_trace(go.Scatter(
+                            x=c['freq_ghz'], y=c['s12'], mode='lines',
+                            line=dict(color=color, width=2),
+                            name=name, showlegend=(i == 0),
+                        ), row=row, col=col)
+
+            fig.update_layout(
+                height=260 * rows,
+                title_text=f"All {n} ON/OFF Pairs (grid view)",
+            )
+            fig.update_xaxes(title_text="Freq (GHz)")
+            fig.update_yaxes(title_text="S12 (dB)")
         fig.update_yaxes(title_text="S12 (dB)")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -356,7 +412,10 @@ def render_ml_results():
     st.title("ML Model Results")
     st.caption("Evaluated using Leave-One-Out cross-validation")
 
-    dataset = st.selectbox("Dataset", ["All Simulations (19 samples)", "ON/OFF Pairs (7 pairs)"])
+    dataset = st.selectbox("Dataset", [
+        f"All Simulations ({len(df)} samples)",
+        f"ON/OFF Pairs ({len(pairs)} pairs)",
+    ])
 
     if "All" in dataset:
         results = results_all
@@ -447,6 +506,8 @@ def render_predict():
         'h_graph': (df['h_graph'].min(), df['h_graph'].max()),
     }
 
+    train_ranges['w_au'] = (df['w_au'].min(), df['w_au'].max())
+
     col_input, col_result = st.columns([1, 1])
 
     with col_input:
@@ -456,14 +517,16 @@ def render_predict():
         g_w = st.slider("g_w (capacitor gap, um)", 2, 6, 3, step=1)
         c_w = st.slider("c_w (capacitor width, um)", 10, 35, 28, step=1)
         h_graph = st.slider("h_graph (graphene height, um)", -8, 10, 2, step=1)
+        w_au = st.slider("w_au (gold width, um)", 2, 7, 4, step=1)
 
-        st.caption("Fixed parameters: w_graph=1, w_au=4")
+        st.caption("Fixed parameter: w_graph=1 (no variance in training data)")
 
         model_choice = st.selectbox("Model", list(trained_all.keys()))
 
         # Check if outside training range
         outside = []
-        for name, val in [('dx', dx), ('g_w', g_w), ('c_w', c_w), ('h_graph', h_graph)]:
+        for name, val in [('dx', dx), ('g_w', g_w), ('c_w', c_w),
+                          ('h_graph', h_graph), ('w_au', w_au)]:
             lo, hi = train_ranges[name]
             if val < lo or val > hi:
                 outside.append(f"{name}={val} (training range: {lo}-{hi})")
@@ -478,8 +541,8 @@ def render_predict():
     with col_result:
         st.subheader("Predictions")
 
-        # Build input
-        X_input = np.array([[dx, g_w, c_w, h_graph, 1, 4]])  # w_graph=1, w_au=4
+        # Build input — must match feat_cols order (5 features after w_graph drop)
+        X_input = np.array([[dx, g_w, c_w, h_graph, w_au]])
         X_scaled = scaler_all.transform(X_input)
 
         for target_name in target_cols:
