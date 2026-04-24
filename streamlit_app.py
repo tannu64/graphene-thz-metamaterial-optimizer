@@ -374,8 +374,7 @@ def render_curves():
             )
             fig.update_xaxes(title_text="Freq (GHz)")
             fig.update_yaxes(title_text="S12 (dB)")
-        fig.update_yaxes(title_text="S12 (dB)")
-        st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
 
     elif chart == "Frequency Shift Summary":
         if len(pairs) == 0:
